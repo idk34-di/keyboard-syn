@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OP-XY Keyboard Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 3px solid #00d9ff;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 0 50px rgba(0, 217, 255, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #00d9ff;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+            font-size: 28px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+
+        /* GRID 16x16 */
+        .grid-section {
+            margin-bottom: 30px;
+        }
+
+        .grid-label {
+            color: #00d9ff;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 4px;
+            background: #0a0a0a;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #00d9ff;
+            margin-bottom: 20px;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #00d9ff;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        .grid-cell:hover {
+            background: #333;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+        }
+
+        .grid-cell.active {
+            background: #00d9ff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.8);
+        }
+
+        /* JOYSTICK XY */
+        .joystick-section {
+            background: #0a0a0a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #00d9ff;
+            margin-bottom: 20px;
+        }
+
+        .joystick-label {
+            color: #00d9ff;
+            font-size: 12px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .joystick-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle at 50% 50%, #2a2a2a, #0a0a0a);
+            border: 2px solid #333;
+            border-radius: 50%;
+            margin: 0 auto;
+            cursor: crosshair;
+            user-select: none;
+        }
+
+        .joystick-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d9ff, transparent);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .joystick-crosshair::after {
+            content: '';
+            position: absolute;
+            top: -49px;
+            left: 50%;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(180deg, transparent, #00d9ff, transparent);
+            transform: translateX(-50%);
+        }
+
+        .joystick-knob {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #00d9ff, #0088aa);
+            border: 2px solid #00ffff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.8);
+            pointer-events: none;
+        }
+
+        .joystick-values {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        .joystick-value {
+            color: #00d9ff;
+            font-weight: bold;
+        }
+
+        /* CONTROL BUTTONS */
+        .controls-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            padding: 15px;
+            background: #1a1a1a;
+            border: 2px solid #00d9ff;
+            color: #00d9ff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .control-btn:hover {
+            background: #00d9ff;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* INFO DISPLAY */
+        .info-section {
+            background: #0a0a0a;
+            border: 2px solid #00d9ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #888;
+        }
+
+        .info-label {
+            color: #00d9ff;
+            font-weight: bold;
+        }
+
+        .keyboard-help {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .keyboard-help h3 {
+            color: #00d9ff;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .key-row {
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .key-row strong {
+            color: #00d9ff;
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .grid {
+                gap: 2px;
+            }
+
+            .controls-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .joystick-container {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎛️ OP-XY SIMULATOR</h1>
+        <div class="subtitle">Teenage Engineering Keyboard Emulator</div>
+
+        <!-- GRID 16x16 -->
+        <div class="grid-section">
+            <div class="grid-label">📊 Sequencer Grid (16x16)</div>
+            <div class="grid" id="grid"></div>
+        </div>
+
+        <!-- JOYSTICK XY -->
+        <div class="joystick-section">
+            <div class="joystick-label">🎮 XY Joystick</div>
+            <div class="joystick-container" id="joystickContainer">
+                <div class="joystick-crosshair"></div>
+                <div class="joystick-knob" id="joystickKnob"></div>
+            </div>
+            <div class="joystick-values">
+                <div class="joystick-value">X: <span id="xValue">0</span></div>
+                <div class="joystick-value">Y: <span id="yValue">0</span></div>
+            </div>
+        </div>
+
+        <!-- CONTROL BUTTONS -->
+        <div class="controls-section">
+            <button class="control-btn" id="playBtn">▶ Play</button>
+            <button class="control-btn" id="stopBtn">⏹ Stop</button>
+            <button class="control-btn" id="recordBtn">● Record</button>
+            <button class="control-btn" id="clearBtn">🗑 Clear</button>
+        </div>
+
+        <!-- INFO DISPLAY -->
+        <div class="info-section">
+            <div class="info-row">
+                <span class="info-label">Status:</span>
+                <span id="status">Ready</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Active Cells:</span>
+                <span id="activeCells">0</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Last Note:</span>
+                <span id="lastNote">---</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">BPM:</span>
+                <span id="bpm">120</span>
+            </div>
+        </div>
+
+        <!-- KEYBOARD HELP -->
+        <div class="keyboard-help">
+            <h3>⌨️ Keyboard Controls</h3>
+            <div class="key-row"><strong>NumPad (0-9)</strong> - Seleziona righe</div>
+            <div class="key-row"><strong>Numpad +/-</strong> - Cambio colonna</div>
+            <div class="key-row"><strong>Arrow Keys</strong> - Muovi Joystick</div>
+            <div class="key-row"><strong>WASD</strong> - Joystick alternativo</div>
+            <div class="key-row"><strong>SPACE</strong> - Attiva/Disattiva cella</div>
+            <div class="key-row"><strong>P / S / R / C</strong> - Play / Stop / Record / Clear</div>
+            <div class="key-row"><strong>Mouse</strong> - Clicca celle e joystick</div>
+        </div>
+    </div>
+
+    <script>
+        // ========== STATE ==========
+        const state = {
+            grid: Array(256).fill(false), // 16x16 = 256 celle
+            selectedRow: 0,
+            selectedCol: 0,
+            joystickX: 0,
+            joystickY: 0,
+            isPlaying: false,
+            isRecording: false,
+            bpm: 120,
+            lastNote: '---'
+        };
+
+        // ========== AUDIO CONTEXT ==========
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(frequency, duration = 100) {
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+
+            osc.frequency.value = frequency;
+            osc.type = 'square';
+
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+
+            osc.start(now);
+            osc.stop(now + duration / 1000);
+        }
+
+        function playNoteByIndex(index) {
+            // Mappa indici a frequenze (scala pentatonica)
+            const notes = [
+                262, 294, 330, 349, 392, // C D E F G
+                440, 494, 523, 587, 659, // A B C D E
+                740, 784, 880, 988, 1047, // F# G# A B C#
+                1175
+            ];
+            const note = notes[index % notes.length];
+            const noteName = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'][index % 16];
+            state.lastNote = noteName;
+            playTone(note, 150);
+            updateDisplay();
+        }
+
+        // ========== GRID FUNCTIONS ==========
+        function initGrid() {
+            const gridContainer = document.getElementById('grid');
+            gridContainer.innerHTML = '';
+
+            for (let i = 0; i < 256; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                if (state.grid[i]) cell.classList.add('active');
+                cell.textContent = '';
+                cell.addEventListener('click', () => toggleCell(i));
+                cell.addEventListener('mouseenter', (e) => {
+                    if (e.buttons === 1) toggleCell(i); // Trascinamento
+                });
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        function toggleCell(index) {
+            state.grid[index] = !state.grid[index];
+            playNoteByIndex(index);
+            updateGridDisplay();
+        }
+
+        function updateGridDisplay() {
+            const cells = document.querySelectorAll('.grid-cell');
+            cells.forEach((cell, i) => {
+                if (state.grid[i]) {
+                    cell.classList.add('active');
+                } else {
+                    cell.classList.remove('active');
+                }
+            });
+            updateDisplay();
+        }
+
+        // ========== JOYSTICK FUNCTIONS ==========
+        function initJoystick() {
+            const container = document.getElementById('joystickContainer');
+            container.addEventListener('mousemove', updateJoystick);
+            container.addEventListener('mouseleave', resetJoystick);
+            container.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                updateJoystick(e.touches[0]);
+            });
+        }
+
+        function updateJoystick(e) {
+            const container = document.getElementById('joystickContainer');
+            const rect = container.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            let x, y;
+            if (e.touches) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            x = Math.max(0, Math.min(rect.width, x));
+            y = Math.max(0, Math.min(rect.height, y));
+
+            const distX = x - centerX;
+            const distY = y - centerY;
+            const maxDist = Math.min(centerX, centerY) - 15;
+
+            const distance = Math.sqrt(distX * distX + distY * distY);
+            let finalX = distX;
+            let finalY = distY;
+
+            if (distance > maxDist) {
+                const angle = Math.atan2(distY, distX);
+                finalX = Math.cos(angle) * maxDist;
+                finalY = Math.sin(angle) * maxDist;
+            }
+
+            state.joystickX = Math.round((finalX / maxDist) * 127);
+            state.joystickY = Math.round((finalY / maxDist) * 127);
+
+            const knob = document.getElementById('joystickKnob');
+            knob.style.transform = `translate(calc(-50% + ${finalX}px), calc(-50% + ${finalY}px))`;
+
+            updateDisplay();
+        }
+
+        function resetJoystick() {
+            state.joystickX = 0;
+            state.joystickY = 0;
+            const knob = document.getElementById('joystickKnob');
+            knob.style.transform = 'translate(-50%, -50%)';
+            updateDisplay();
+        }
+
+        // ========== KEYBOARD CONTROLS ==========
+        document.addEventListener('keydown', (e) => {
+            // Numpad per selezione riga (0-9)
+            if (e.key >= '0' && e.key <= '9') {
+                const row = parseInt(e.key);
+                if (row < 16) {
+                    state.selectedRow = row;
+                    playTone(262 + row * 50);
+                }
+            }
+
+            // Arrow Keys e WASD per joystick
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                state.joystickY = Math.max(-127, state.joystickY - 20);
+                updateJoystickDisplay();
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                state.joystickY = Math.min(127, state.joystickY + 20);
+                updateJoystickDisplay();
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                state.joystickX = Math.max(-127, state.joystickX - 20);
+                updateJoystickDisplay();
+                e.preventDefault();
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                state.joystickX = Math.min(127, state.joystickX + 20);
+                updateJoystickDisplay();
+                e.preventDefault();
+            }
+
+            // SPACE per attivare/disattivare cella selezionata
+            if (e.key === ' ') {
+                const index = state.selectedRow * 16 + state.selectedCol;
+                toggleCell(index);
+                e.preventDefault();
+            }
+
+            // Comandi
+            if (e.key === 'p' || e.key === 'P') playClick();
+            if (e.key === 's' || e.key === 'S') stopClick();
+            if (e.key === 'r' || e.key === 'R') recordClick();
+            if (e.key === 'c' || e.key === 'C') clearClick();
+
+            // +/- per colonna
+            if (e.key === '+' || e.key === '=') {
+                state.selectedCol = Math.min(15, state.selectedCol + 1);
+            }
+            if (e.key === '-') {
+                state.selectedCol = Math.max(0, state.selectedCol - 1);
+            }
+        });
+
+        function updateJoystickDisplay() {
+            const maxDist = 85; // Raggio del joystick
+            const x = (state.joystickX / 127) * maxDist;
+            const y = (state.joystickY / 127) * maxDist;
+            const knob = document.getElementById('joystickKnob');
+            knob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+            updateDisplay();
+        }
+
+        // ========== BUTTON HANDLERS ==========
+        function playClick() {
+            state.isPlaying = !state.isPlaying;
+            document.getElementById('playBtn').style.background = state.isPlaying ? '#00d9ff' : '#1a1a1a';
+            document.getElementById('playBtn').style.color = state.isPlaying ? '#000' : '#00d9ff';
+            playTone(440, 100);
+            updateDisplay();
+        }
+
+        function stopClick() {
+            state.isPlaying = false;
+            state.isRecording = false;
+            document.getElementById('playBtn').style.background = '#1a1a1a';
+            document.getElementById('playBtn').style.color = '#00d9ff';
+            document.getElementById('recordBtn').style.background = '#1a1a1a';
+            document.getElementById('recordBtn').style.color = '#00d9ff';
+            playTone(220, 100);
+            updateDisplay();
+        }
+
+        function recordClick() {
+            state.isRecording = !state.isRecording;
+            document.getElementById('recordBtn').style.background = state.isRecording ? '#ff0000' : '#1a1a1a';
+            document.getElementById('recordBtn').style.color = state.isRecording ? '#fff' : '#00d9ff';
+            playTone(330, 100);
+            updateDisplay();
+        }
+
+        function clearClick() {
+            if (confirm('Sei sicuro? Cancella tutte le celle!')) {
+                state.grid = Array(256).fill(false);
+                updateGridDisplay();
+                playTone(110, 150);
+            }
+        }
+
+        // ========== EVENT LISTENERS ==========
+        document.getElementById('playBtn').addEventListener('click', playClick);
+        document.getElementById('stopBtn').addEventListener('click', stopClick);
+        document.getElementById('recordBtn').addEventListener('click', recordClick);
+        document.getElementById('clearBtn').addEventListener('click', clearClick);
+
+        // ========== DISPLAY UPDATE ==========
+        function updateDisplay() {
+            document.getElementById('xValue').textContent = state.joystickX;
+            document.getElementById('yValue').textContent = state.joystickY;
+            document.getElementById('activeCells').textContent = state.grid.filter(x => x).length;
+            document.getElementById('lastNote').textContent = state.lastNote;
+            
+            let status = 'Ready';
+            if (state.isPlaying) status = '▶ Playing';
+            if (state.isRecording) status = '● Recording';
+            document.getElementById('status').textContent = status;
+        }
+
+        // ========== INIT ==========
+        window.addEventListener('load', () => {
+            initGrid();
+            initJoystick();
+            updateDisplay();
+            playTone(262, 50);
+        });
+
+        // Previeni zoom su doppio tap
+        document.addEventListener('touchmove', (e) => {
+            if (e.scale !== 1) e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>
