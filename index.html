@@ -174,13 +174,14 @@
             font-family: var(--font-mono);
             font-size: 10px;
             color: var(--accent);
-            min-width: 80px;
+            min-width: 30px;
             padding: 8px;
             background: var(--surface2);
             border-radius: 2px;
             border: 1px solid var(--border);
             white-space: nowrap;
             letter-spacing: 1px;
+            text-align: center;
         }
 
         .steps {
@@ -462,7 +463,7 @@
         </div>
     </main>
 
-    <footer>OP-XY SEQUENCER v3.1 — FINAL</footer>
+    <footer>OP-XY SEQUENCER v3.3 — CLEAN</footer>
 
     <script>
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -517,14 +518,14 @@
             ],
             notes: ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ò', 'À', 'Ù'],
             tracks: [
-                { name: 'BD kick', steps: [] },
-                { name: 'SD snare', steps: [] },
-                { name: 'HH closed', steps: [] },
-                { name: 'OH open', steps: [] },
-                { name: 'CL clap', steps: [] },
-                { name: 'TM hi', steps: [] },
-                { name: 'TM lo', steps: [] },
-                { name: 'CY cymbal', steps: [] },
+                { name: '1' },
+                { name: '2' },
+                { name: '3' },
+                { name: '4' },
+                { name: '5' },
+                { name: '6' },
+                { name: '7' },
+                { name: '8' },
             ]
         };
 
@@ -574,7 +575,6 @@
             document.getElementById('status-freq').textContent = state.currentFreq > 0 ? state.currentFreq.toFixed(1) + ' Hz' : '--- Hz';
             document.getElementById('status-tuning').textContent = `TUNING: ${state.tuning > 0 ? '+' : ''}${state.tuning}`;
             
-            // Aggiorna bottone metro
             const metroBtn = document.getElementById('btn-metro');
             if (state.metroActive) {
                 metroBtn.classList.add('active');
@@ -700,27 +700,15 @@
             const key = e.key;
             const keyUpper = key.toUpperCase();
             
-            // BPM con Z/X
             if (keyUpper === 'Z') { changeBpm(5); e.preventDefault(); return; }
             if (keyUpper === 'X') { changeBpm(-5); e.preventDefault(); return; }
-            
-            // Metronomo (P) - INDIPENDENTE, non si spegne con altri comandi
-            if (keyUpper === 'P') { 
-                toggleMetro(); 
-                e.preventDefault(); 
-                return; 
-            }
-            
-            // Octave
+            if (keyUpper === 'P') { toggleMetro(); e.preventDefault(); return; }
             if (keyUpper === 'C') { scalUp(); e.preventDefault(); return; }
             if (keyUpper === 'V') { scalDown(); e.preventDefault(); return; }
-            
-            // Controls
             if (key === ',') { toggleRec(); e.preventDefault(); return; }
             if (key === '.') { togglePlay(); e.preventDefault(); return; }
             if (key === '-') { stopAll(); e.preventDefault(); return; }
             
-            // Fine tuning con numeri (1-0)
             const tuneMap = {
                 '1': 10, '2': 20, '3': 30, '4': 40, '5': 50,
                 '6': 60, '7': 70, '8': 80, '9': 90, '0': 100
@@ -733,7 +721,6 @@
                 return;
             }
 
-            // Navigate steps con frecce - CORRETTE (sinistra = sinistra, destra = destra)
             if (key === 'ArrowRight') {
                 state.currentStep = Math.min(state.steps - 1, state.currentStep + 1);
                 renderSequencer();
@@ -749,7 +736,6 @@
                 return;
             }
 
-            // Navigate rows con frecce su/giu
             if (key === 'ArrowUp') {
                 state.currentRow = Math.max(0, state.currentRow - 1);
                 renderSequencer();
@@ -763,7 +749,6 @@
                 return;
             }
             
-            // Note sulla tastiera - SALVA nella riga corrente
             const noteMap = {
                 'A': 0, 'a': 0,
                 'S': 1, 's': 1,
@@ -783,8 +768,23 @@
                 const noteIndex = noteMap[key];
                 const freq = state.baseFreqs[noteIndex] * Math.pow(2, state.octave) + state.tuning;
                 state.currentFreq = freq;
-                
-                // Suona il tasto (tono semplice, NON il suono della riga)
                 playTone(freq, 0.15);
                 
-                // SALVA solo se in R*
+                if (state.recording) {
+                    state.tracks[state.currentRow].steps[state.currentStep] = !state.tracks[state.currentRow].steps[state.currentStep];
+                    state.counter++;
+                    renderSequencer();
+                }
+                
+                updateScreen();
+                return;
+            }
+        });
+
+        window.addEventListener('load', () => {
+            renderSequencer();
+            updateScreen();
+        });
+    </script>
+</body>
+</html>
