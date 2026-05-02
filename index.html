@@ -313,6 +313,16 @@
             color: #001a10; 
         }
 
+        .btn.metro {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn.metro.active {
+            background: var(--accent);
+            color: #001a28;
+        }
+
         .tempo-val {
             font-family: var(--font-mono);
             font-size: 14px;
@@ -426,7 +436,7 @@
                 <button class="btn play" id="btn-play" onclick="togglePlay()">▶ PLAY (.)</button>
                 <button class="btn rec" id="btn-rec" onclick="toggleRec()">● REC (,)</button>
                 <button class="btn" id="btn-stop" onclick="stopAll()">⏹ STOP (-)</button>
-                <button class="btn" id="btn-metro" onclick="toggleMetro()">🔔 METRO (P)</button>
+                <button class="btn metro" id="btn-metro" onclick="toggleMetro()">🔔 METRO (P)</button>
                 <button class="btn" onclick="clearAll()">🗑 CLEAR</button>
             </div>
 
@@ -443,7 +453,7 @@
                 <div class="help-item"><span class="help-key">Z / X</span> — BPM alto/basso</div>
                 <div class="help-item"><span class="help-key">A,S,D,F,G,H,J,K,L,Ò,À,Ù</span> — Note (salva in riga attuale)</div>
                 <div class="help-item"><span class="help-key">1-0</span> — Fine tune frequenza (+10÷100 Hz)</div>
-                <div class="help-item"><span class="help-key">P</span> — Metronomo ON/OFF</div>
+                <div class="help-item"><span class="help-key">P</span> — Metronomo ON/OFF (indipendente)</div>
                 <div class="help-item"><span class="help-key">C / V</span> — Ottava su/giù</div>
                 <div class="help-item"><span class="help-key">← →</span> — Step precedente/successivo</div>
                 <div class="help-item"><span class="help-key">↑ ↓</span> — Riga precedente/successiva</div>
@@ -452,7 +462,7 @@
         </div>
     </main>
 
-    <footer>OP-XY SEQUENCER v3.0</footer>
+    <footer>OP-XY SEQUENCER v3.1 — FINAL</footer>
 
     <script>
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -563,6 +573,14 @@
             document.getElementById('status-step').textContent = `STEP ${state.currentStep + 1}/${state.steps}`;
             document.getElementById('status-freq').textContent = state.currentFreq > 0 ? state.currentFreq.toFixed(1) + ' Hz' : '--- Hz';
             document.getElementById('status-tuning').textContent = `TUNING: ${state.tuning > 0 ? '+' : ''}${state.tuning}`;
+            
+            // Aggiorna bottone metro
+            const metroBtn = document.getElementById('btn-metro');
+            if (state.metroActive) {
+                metroBtn.classList.add('active');
+            } else {
+                metroBtn.classList.remove('active');
+            }
         }
 
         function playSequence() {
@@ -609,9 +627,7 @@
         function stopAll() {
             state.playing = false;
             state.recording = false;
-            state.metroActive = false;
             clearTimeout(state.playInterval);
-            clearInterval(state.metroInterval);
             document.getElementById('rec-dot').classList.remove('active');
             updateScreen();
             renderSequencer();
@@ -681,23 +697,28 @@
 
         // Keyboard
         document.addEventListener('keydown', (e) => {
-            const key = e.key.toUpperCase();
+            const key = e.key;
+            const keyUpper = key.toUpperCase();
             
             // BPM con Z/X
-            if (key === 'Z') { changeBpm(5); e.preventDefault(); }
-            if (key === 'X') { changeBpm(-5); e.preventDefault(); }
+            if (keyUpper === 'Z') { changeBpm(5); e.preventDefault(); return; }
+            if (keyUpper === 'X') { changeBpm(-5); e.preventDefault(); return; }
             
-            // Metronomo
-            if (key === 'P') { toggleMetro(); e.preventDefault(); }
+            // Metronomo (P) - INDIPENDENTE, non si spegne con altri comandi
+            if (keyUpper === 'P') { 
+                toggleMetro(); 
+                e.preventDefault(); 
+                return; 
+            }
             
             // Octave
-            if (key === 'C') { scalUp(); e.preventDefault(); }
-            if (key === 'V') { scalDown(); e.preventDefault(); }
+            if (keyUpper === 'C') { scalUp(); e.preventDefault(); return; }
+            if (keyUpper === 'V') { scalDown(); e.preventDefault(); return; }
             
             // Controls
-            if (key === ',') { toggleRec(); e.preventDefault(); }
-            if (key === '.') { togglePlay(); e.preventDefault(); }
-            if (key === '-') { stopAll(); e.preventDefault(); }
+            if (key === ',') { toggleRec(); e.preventDefault(); return; }
+            if (key === '.') { togglePlay(); e.preventDefault(); return; }
+            if (key === '-') { stopAll(); e.preventDefault(); return; }
             
             // Fine tuning con numeri (1-0)
             const tuneMap = {
@@ -709,38 +730,53 @@
                 state.counter++;
                 updateScreen();
                 e.preventDefault();
+                return;
             }
 
-            // Navigate steps con frecce sinistra/destra
-            if (key === 'ARROWLEFT') {
-                state.currentStep = Math.max(0, state.currentStep - 1);
-                renderSequencer();
-                updateScreen();
-                e.preventDefault();
-            }
-            if (key === 'ARROWRIGHT') {
+            // Navigate steps con frecce - CORRETTE (sinistra = sinistra, destra = destra)
+            if (key === 'ArrowRight') {
                 state.currentStep = Math.min(state.steps - 1, state.currentStep + 1);
                 renderSequencer();
                 updateScreen();
                 e.preventDefault();
+                return;
+            }
+            if (key === 'ArrowLeft') {
+                state.currentStep = Math.max(0, state.currentStep - 1);
+                renderSequencer();
+                updateScreen();
+                e.preventDefault();
+                return;
             }
 
             // Navigate rows con frecce su/giu
-            if (key === 'ARROWUP') {
+            if (key === 'ArrowUp') {
                 state.currentRow = Math.max(0, state.currentRow - 1);
                 renderSequencer();
                 e.preventDefault();
+                return;
             }
-            if (key === 'ARROWDOWN') {
+            if (key === 'ArrowDown') {
                 state.currentRow = Math.min(state.tracks.length - 1, state.currentRow + 1);
                 renderSequencer();
                 e.preventDefault();
+                return;
             }
             
             // Note sulla tastiera - SALVA nella riga corrente
             const noteMap = {
-                'A': 0, 'S': 1, 'D': 2, 'F': 3, 'G': 4, 'H': 5,
-                'J': 6, 'K': 7, 'L': 8, 'Ò': 9, 'À': 10, 'Ù': 11
+                'A': 0, 'a': 0,
+                'S': 1, 's': 1,
+                'D': 2, 'd': 2,
+                'F': 3, 'f': 3,
+                'G': 4, 'g': 4,
+                'H': 5, 'h': 5,
+                'J': 6, 'j': 6,
+                'K': 7, 'k': 7,
+                'L': 8, 'l': 8,
+                'Ò': 9, 'ò': 9,
+                'À': 10, 'à': 10,
+                'Ù': 11, 'ù': 11
             };
             if (noteMap.hasOwnProperty(key)) {
                 e.preventDefault();
@@ -748,22 +784,7 @@
                 const freq = state.baseFreqs[noteIndex] * Math.pow(2, state.octave) + state.tuning;
                 state.currentFreq = freq;
                 
+                // Suona il tasto (tono semplice, NON il suono della riga)
                 playTone(freq, 0.15);
                 
-                if (state.recording) {
-                    state.tracks[state.currentRow].steps[state.currentStep] = !state.tracks[state.currentRow].steps[state.currentStep];
-                    state.counter++;
-                    renderSequencer();
-                }
-                
-                updateScreen();
-            }
-        });
-
-        window.addEventListener('load', () => {
-            renderSequencer();
-            updateScreen();
-        });
-    </script>
-</body>
-</html>
+                // SALVA solo se in R*
