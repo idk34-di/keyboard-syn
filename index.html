@@ -81,6 +81,17 @@
             padding: 15px 20px;
             font-family: var(--font-mono);
             margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .screen-counter {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 18px;
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
         .screen-top {
@@ -107,6 +118,7 @@
             display: flex; 
             gap: 20px;
             flex-wrap: wrap;
+            margin-top: 10px;
         }
 
         .screen-info { 
@@ -147,9 +159,16 @@
             gap: 8px;
             margin-bottom: 8px;
             align-items: center;
+            padding: 4px;
+            border-radius: 2px;
+            transition: background 0.1s;
         }
 
         .track:last-child { margin-bottom: 0; }
+
+        .track.current-row {
+            background: rgba(91, 200, 232, 0.1);
+        }
 
         .track-label {
             font-family: var(--font-mono);
@@ -168,6 +187,7 @@
             display: flex;
             gap: 4px;
             flex: 1;
+            flex-direction: row-reverse;
         }
 
         .step {
@@ -364,6 +384,7 @@
     <main>
         <!-- SCREEN -->
         <div class="screen">
+            <div class="screen-counter" id="counter">0</div>
             <div class="screen-top">
                 <span class="screen-label">OP-XY SEQUENCER</span>
                 <span class="screen-bpm" id="bpm-display">120</span>
@@ -420,18 +441,18 @@
             <div class="help-title">⚡ KEYBOARD CONTROLS</div>
             <div class="help-grid">
                 <div class="help-item"><span class="help-key">Z / X</span> — BPM alto/basso</div>
-                <div class="help-item"><span class="help-key">A,S,D,F,G,H,J,K,L,Ò,À,Ù</span> — Note (salva in riga)</div>
-                <div class="help-item"><span class="help-key">1-0</span> — Fine tune frequenza (+10 Hz)</div>
+                <div class="help-item"><span class="help-key">A,S,D,F,G,H,J,K,L,Ò,À,Ù</span> — Note (salva in riga attuale)</div>
+                <div class="help-item"><span class="help-key">1-0</span> — Fine tune frequenza (+10÷100 Hz)</div>
                 <div class="help-item"><span class="help-key">P</span> — Metronomo ON/OFF</div>
                 <div class="help-item"><span class="help-key">C / V</span> — Ottava su/giù</div>
+                <div class="help-item"><span class="help-key">← →</span> — Step precedente/successivo</div>
                 <div class="help-item"><span class="help-key">↑ ↓</span> — Riga precedente/successiva</div>
                 <div class="help-item"><span class="help-key">, . -</span> — REC / PLAY / STOP</div>
-                <div class="help-item"><span class="help-key">CLICK CELLE</span> — Aggiungi/togli note</div>
             </div>
         </div>
     </main>
 
-    <footer>OP-XY SEQUENCER v2.1 — Fixed</footer>
+    <footer>OP-XY SEQUENCER v3.0</footer>
 
     <script>
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -478,7 +499,8 @@
             playInterval: null,
             metroInterval: null,
             currentFreq: 0,
-            tuning: 0,  // Fine tuning in Hz
+            tuning: 0,
+            counter: 0,
             baseFreqs: [
                 130.81, 146.83, 164.81, 174.61, 196.00, 220.00,
                 246.94, 261.63, 293.66, 329.63, 349.23, 392.00
@@ -506,8 +528,7 @@
             let html = '';
             
             state.tracks.forEach((track, ti) => {
-                const isCurrentRow = ti === state.currentRow;
-                html += `<div class="track"${isCurrentRow ? ' style="background: rgba(91, 200, 232, 0.05); padding: 4px; border-radius: 2px;"' : ''}>
+                html += `<div class="track${ti === state.currentRow ? ' current-row' : ''}">
                     <div class="track-label">${track.name}</div>
                     <div class="steps">`;
                 
@@ -525,12 +546,14 @@
 
         function toggleStep(track, step) {
             state.tracks[track].steps[step] = !state.tracks[track].steps[step];
-            playTone(state.baseFreqs[track % 12] * Math.pow(2, state.octave) + state.tuning, 0.08);
+            const freq = state.baseFreqs[track % 12] * Math.pow(2, state.octave) + state.tuning;
+            playTone(freq, 0.08);
             renderSequencer();
         }
 
         function updateScreen() {
             document.getElementById('bpm-display').textContent = state.bpm;
+            document.getElementById('counter').textContent = state.counter;
             document.getElementById('status-play').textContent = state.playing ? '▶ PLAYING' : 'STOP';
             document.getElementById('status-play').className = 'screen-info' + (state.playing ? ' on' : '');
             document.getElementById('status-rec').textContent = state.recording ? '● REC' : '---';
@@ -683,11 +706,26 @@
             };
             if (tuneMap.hasOwnProperty(key)) {
                 state.tuning = tuneMap[key];
+                state.counter++;
                 updateScreen();
                 e.preventDefault();
             }
 
-            // Navigate rows con frecce
+            // Navigate steps con frecce sinistra/destra
+            if (key === 'ARROWLEFT') {
+                state.currentStep = Math.max(0, state.currentStep - 1);
+                renderSequencer();
+                updateScreen();
+                e.preventDefault();
+            }
+            if (key === 'ARROWRIGHT') {
+                state.currentStep = Math.min(state.steps - 1, state.currentStep + 1);
+                renderSequencer();
+                updateScreen();
+                e.preventDefault();
+            }
+
+            // Navigate rows con frecce su/giu
             if (key === 'ARROWUP') {
                 state.currentRow = Math.max(0, state.currentRow - 1);
                 renderSequencer();
@@ -710,12 +748,11 @@
                 const freq = state.baseFreqs[noteIndex] * Math.pow(2, state.octave) + state.tuning;
                 state.currentFreq = freq;
                 
-                // Play the tone
                 playTone(freq, 0.15);
                 
-                // SALVA nella riga corrente al step corrente
                 if (state.recording) {
                     state.tracks[state.currentRow].steps[state.currentStep] = !state.tracks[state.currentRow].steps[state.currentStep];
+                    state.counter++;
                     renderSequencer();
                 }
                 
