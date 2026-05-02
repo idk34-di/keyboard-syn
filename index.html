@@ -3,62 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OP-XY Keyboard Simulator</title>
+    <title>OP-XY SIMULATOR — Teenage Engineering</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #0a0e14;
+            --surface: #111820;
+            --surface2: #1a2330;
+            --border: #1e3040;
+            --accent: #5bc8e8;
+            --accent2: #00ff88;
+            --accent3: #ff6b6b;
+            --text: #c8dce8;
+            --text2: #4a7090;
+            --screen-bg: #000d14;
+            --screen-text: #00d4ff;
+            --screen-dim: #003355;
+            --pad: #5bc8e8;
+            --pad-text: #001a28;
+            --step-on: #5bc8e8;
+            --step-off: #1a2330;
+            --step-cur: #00ff88;
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-ui: 'Rajdhani', sans-serif;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Courier New', monospace;
-            background: #1a1a1a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-ui);
             min-height: 100vh;
-            padding: 20px;
-            color: #fff;
+            overflow-x: hidden;
         }
 
-        .container {
-            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-            border: 3px solid #00d9ff;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 800px;
-            width: 100%;
-            box-shadow: 0 0 50px rgba(0, 217, 255, 0.3);
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
         }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            color: #00d9ff;
-            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-            font-size: 28px;
+        .header-left h1 {
+            font-family: var(--font-mono);
+            font-size: 16px;
+            letter-spacing: 3px;
+            color: var(--accent);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rec-indicator {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent3);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+        .rec-indicator.active { opacity: 1; animation: blink 1s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+        .header-tag {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text2);
             letter-spacing: 2px;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 30px;
-            font-size: 12px;
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        /* GRID 16x16 */
-        .grid-section {
-            margin-bottom: 30px;
+        /* ── DEVICE SELECTOR ── */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 5px 14px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text2);
+            transition: all .15s;
+        }
+        .tab:hover { border-color: var(--accent); color: var(--accent); }
+        .tab.active { background: var(--accent); color: var(--pad-text); border-color: var(--accent); }
+
+        /* ── DEVICE CARD ── */
+        .device {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.25rem;
+        }
+
+        /* ── SCREEN ── */
+        .screen {
+            background: var(--screen-bg);
+            border: 1px solid #002233;
+            border-radius: 3px;
+            padding: 10px 14px;
+            margin-bottom: 1.25rem;
+            font-family: var(--font-mono);
+        }
+        .screen-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .screen-label { color: var(--screen-text); font-size: 11px; letter-spacing: 2px; }
+        .screen-bpm { color: var(--screen-text); font-size: 24px; letter-spacing: 1px; }
+        .screen-row { display: flex; gap: 16px; }
+        .screen-info { color: var(--screen-dim); font-size: 10px; letter-spacing: 1px; }
+        .screen-info.on { color: var(--screen-text); }
+        .screen-info.rec-on { color: var(--accent3); }
+
+        /* ── GRID 16x16 ── */
+        .grid-container {
+            margin-bottom: 1.25rem;
         }
 
         .grid-label {
-            color: #00d9ff;
-            font-size: 12px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
         }
 
         .grid {
@@ -67,65 +158,70 @@
             gap: 4px;
             background: #0a0a0a;
             padding: 10px;
-            border-radius: 8px;
-            border: 2px solid #00d9ff;
-            margin-bottom: 20px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
         }
 
         .grid-cell {
             aspect-ratio: 1;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 4px;
+            background: var(--step-off);
+            border: 1px solid var(--border);
+            border-radius: 2px;
             cursor: pointer;
             transition: all 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
-            color: #00d9ff;
+            font-size: 8px;
+            color: var(--text2);
             font-weight: bold;
             user-select: none;
+            font-family: var(--font-mono);
         }
 
         .grid-cell:hover {
-            background: #333;
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+            background: var(--surface2);
+            border-color: var(--accent);
         }
 
         .grid-cell.active {
-            background: #00d9ff;
-            color: #000;
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.8);
+            background: var(--step-on);
+            color: var(--pad-text);
+            border-color: var(--accent);
+            box-shadow: inset 0 0 8px rgba(91, 200, 232, 0.3);
         }
 
-        /* JOYSTICK XY */
+        /* ── JOYSTICK XY ── */
         .joystick-section {
-            background: #0a0a0a;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #00d9ff;
-            margin-bottom: 20px;
+            background: var(--surface2);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            align-items: center;
         }
 
         .joystick-label {
-            color: #00d9ff;
-            font-size: 12px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-family: var(--font-mono);
+            color: var(--accent2);
+            font-size: 11px;
+            letter-spacing: 2px;
+            grid-column: 1/-1;
         }
 
         .joystick-container {
             position: relative;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle at 50% 50%, #2a2a2a, #0a0a0a);
-            border: 2px solid #333;
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle at 50% 50%, var(--surface2), var(--screen-bg));
+            border: 2px solid var(--border);
             border-radius: 50%;
-            margin: 0 auto;
             cursor: crosshair;
             user-select: none;
+            margin: 0 auto;
         }
 
         .joystick-crosshair {
@@ -134,7 +230,7 @@
             left: 50%;
             width: 100%;
             height: 2px;
-            background: linear-gradient(90deg, transparent, #00d9ff, transparent);
+            background: linear-gradient(90deg, transparent, var(--accent2), transparent);
             transform: translateY(-50%);
             pointer-events: none;
         }
@@ -142,273 +238,500 @@
         .joystick-crosshair::after {
             content: '';
             position: absolute;
-            top: -49px;
+            top: -79px;
             left: 50%;
             width: 2px;
-            height: 100px;
-            background: linear-gradient(180deg, transparent, #00d9ff, transparent);
+            height: 160px;
+            background: linear-gradient(180deg, transparent, var(--accent2), transparent);
             transform: translateX(-50%);
         }
 
         .joystick-knob {
             position: absolute;
-            width: 30px;
-            height: 30px;
-            background: radial-gradient(circle at 30% 30%, #00d9ff, #0088aa);
-            border: 2px solid #00ffff;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle at 30% 30%, var(--accent2), #00cc66);
+            border: 2px solid var(--accent);
             border-radius: 50%;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px rgba(0, 217, 255, 0.8);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
             pointer-events: none;
+            z-index: 10;
         }
 
-        .joystick-values {
+        .joystick-info {
             display: flex;
-            justify-content: space-around;
-            margin-top: 15px;
-            font-size: 12px;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .joystick-value {
-            color: #00d9ff;
-            font-weight: bold;
-        }
-
-        /* CONTROL BUTTONS */
-        .controls-section {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .control-btn {
-            padding: 15px;
-            background: #1a1a1a;
-            border: 2px solid #00d9ff;
-            color: #00d9ff;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
+            font-family: var(--font-mono);
             font-size: 12px;
-            text-transform: uppercase;
-            transition: all 0.2s;
+            color: var(--accent2);
+        }
+
+        .joystick-value-label {
+            color: var(--text2);
+            font-size: 10px;
+        }
+
+        /* ── CONTROLS ── */
+        .controls-panel {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        .knobs-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .knob-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .knob {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            cursor: ns-resize;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
             user-select: none;
         }
 
-        .control-btn:hover {
-            background: #00d9ff;
-            color: #000;
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+        .knob-dot {
+            width: 3px; height: 14px;
+            background: var(--accent);
+            border-radius: 2px;
+            position: absolute;
+            top: 4px;
+            transform-origin: bottom center;
         }
 
-        .control-btn:active {
-            transform: scale(0.95);
+        .knob-val {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--accent);
         }
 
-        /* INFO DISPLAY */
-        .info-section {
-            background: #0a0a0a;
-            border: 2px solid #00d9ff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-            font-size: 12px;
+        .knob-label {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 1px;
         }
 
-        .info-row {
+        .fx-section { display: flex; flex-direction: column; gap: 5px; }
+        .fx-label {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 1px;
+        }
+        .fx-chain { display: flex; gap: 5px; flex-wrap: wrap; }
+        .fx-btn {
+            padding: 4px 10px;
+            border-radius: 2px;
+            border: 1px solid var(--accent);
+            font-family: var(--font-mono);
+            font-size: 10px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--accent);
+            letter-spacing: 1px;
+            transition: all .1s;
+        }
+        .fx-btn.active { background: var(--accent); color: var(--pad-text); }
+
+        .btn-row {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            color: #888;
+            gap: 6px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
         }
 
-        .info-label {
-            color: #00d9ff;
-            font-weight: bold;
-        }
-
-        .keyboard-help {
-            background: #0a0a0a;
-            border: 2px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
+        .btn {
+            padding: 7px 16px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-family: var(--font-mono);
             font-size: 11px;
-            line-height: 1.6;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all .1s;
         }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn.active { background: var(--accent); color: var(--pad-text); border-color: var(--accent); }
+        .btn.rec { border-color: var(--accent3); color: var(--accent3); }
+        .btn.rec.active { background: var(--accent3); color: #fff; }
 
-        .keyboard-help h3 {
-            color: #00d9ff;
-            margin-bottom: 10px;
+        .tempo-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: .75rem;
+        }
+        .tempo-row label {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text2);
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        .tempo-row input[type=range] {
+            flex: 1;
+            accent-color: var(--accent);
+        }
+        .tempo-val {
+            font-family: var(--font-mono);
             font-size: 12px;
+            color: var(--text);
+            min-width: 60px;
+            text-align: right;
         }
 
-        .key-row {
-            color: #888;
-            margin-bottom: 5px;
+        /* ── STEP SEQUENCER ── */
+        .step-section { 
+            margin-bottom: 1rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem;
         }
 
-        .key-row strong {
-            color: #00d9ff;
+        .step-section-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent2);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
         }
 
-        /* RESPONSIVO */
-        @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
+        .step-track-wrap { margin-bottom: 8px; }
+        .step-track-label {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            color: var(--text2);
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
 
-            h1 {
-                font-size: 20px;
-            }
+        .step-row {
+            display: grid;
+            gap: 3px;
+        }
 
-            .grid {
-                gap: 2px;
-            }
+        .step {
+            height: 14px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
+            background: var(--step-off);
+            cursor: pointer;
+            transition: background .08s;
+        }
+        .step.on { background: var(--step-on); border-color: var(--step-on); }
+        .step.current { background: var(--step-cur); border-color: var(--step-cur); }
+        .step.on.current { background: var(--step-cur); }
 
-            .controls-section {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        /* ── MEMO SECTION ── */
+        .memo-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem 1.25rem;
+        }
 
-            .joystick-container {
-                width: 150px;
-                height: 150px;
-            }
+        .memo-title {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--accent3);
+            letter-spacing: 2px;
+            margin-bottom: .75rem;
+        }
+
+        .memo-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .memo-list { margin-top: .75rem; display: flex; flex-direction: column; gap: 6px; }
+        .memo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 8px 12px;
+        }
+
+        .memo-name {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .memo-size {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text2);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            border-radius: 2px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text2);
+            font-family: var(--font-mono);
+            font-size: 10px;
+            cursor: pointer;
+            transition: all .1s;
+        }
+        .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-sm.danger:hover { border-color: var(--accent3); color: var(--accent3); }
+
+        .btn.audio-rec { border-color: var(--accent2); color: var(--accent2); }
+        .btn.audio-rec.active { background: var(--accent2); color: #001a10; }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text2);
+            letter-spacing: 2px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 700px) {
+            .joystick-section { grid-template-columns: 1fr; }
+            .knobs-row { gap: 12px; }
+            .knob { width: 40px; height: 40px; }
+            .grid { gap: 2px; padding: 6px; }
+            .grid-cell { min-height: 28px; }
+            .joystick-container { width: 130px; height: 130px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎛️ OP-XY SIMULATOR</h1>
-        <div class="subtitle">Teenage Engineering Keyboard Emulator</div>
-
-        <!-- GRID 16x16 -->
-        <div class="grid-section">
-            <div class="grid-label">📊 Sequencer Grid (16x16)</div>
-            <div class="grid" id="grid"></div>
+    <header>
+        <div class="header-left">
+            <h1>🎛️ OP-XY SIMULATOR</h1>
         </div>
-
-        <!-- JOYSTICK XY -->
-        <div class="joystick-section">
-            <div class="joystick-label">🎮 XY Joystick</div>
-            <div class="joystick-container" id="joystickContainer">
-                <div class="joystick-crosshair"></div>
-                <div class="joystick-knob" id="joystickKnob"></div>
-            </div>
-            <div class="joystick-values">
-                <div class="joystick-value">X: <span id="xValue">0</span></div>
-                <div class="joystick-value">Y: <span id="yValue">0</span></div>
-            </div>
+        <div class="header-right">
+            <div class="rec-indicator" id="rec-dot"></div>
+            <span class="header-tag">TEENAGE ENGINEERING</span>
         </div>
+    </header>
 
-        <!-- CONTROL BUTTONS -->
-        <div class="controls-section">
-            <button class="control-btn" id="playBtn">▶ Play</button>
-            <button class="control-btn" id="stopBtn">⏹ Stop</button>
-            <button class="control-btn" id="recordBtn">● Record</button>
-            <button class="control-btn" id="clearBtn">🗑 Clear</button>
-        </div>
+    <main>
+        <div class="tabs" id="tabs"></div>
+        <div id="device-container"></div>
 
-        <!-- INFO DISPLAY -->
-        <div class="info-section">
-            <div class="info-row">
-                <span class="info-label">Status:</span>
-                <span id="status">Ready</span>
+        <!-- MEMO VOCALI -->
+        <div class="memo-section">
+            <div class="memo-title">◉ MEMO VOCALI / REGISTRAZIONI</div>
+            <div class="memo-row">
+                <button class="btn audio-rec" id="btn-audio-rec" onclick="toggleAudioRec()">◉ REC AUDIO</button>
+                <button class="btn" onclick="exportAllMemos()">↓ SCARICA TUTTO</button>
+                <span id="rec-timer" style="font-family:var(--font-mono);font-size:11px;color:var(--accent3);display:none"></span>
             </div>
-            <div class="info-row">
-                <span class="info-label">Active Cells:</span>
-                <span id="activeCells">0</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Last Note:</span>
-                <span id="lastNote">---</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">BPM:</span>
-                <span id="bpm">120</span>
-            </div>
+            <div class="memo-list" id="memo-list"></div>
         </div>
+    </main>
 
-        <!-- KEYBOARD HELP -->
-        <div class="keyboard-help">
-            <h3>⌨️ Keyboard Controls</h3>
-            <div class="key-row"><strong>NumPad (0-9)</strong> - Seleziona righe</div>
-            <div class="key-row"><strong>Numpad +/-</strong> - Cambio colonna</div>
-            <div class="key-row"><strong>Arrow Keys</strong> - Muovi Joystick</div>
-            <div class="key-row"><strong>WASD</strong> - Joystick alternativo</div>
-            <div class="key-row"><strong>SPACE</strong> - Attiva/Disattiva cella</div>
-            <div class="key-row"><strong>P / S / R / C</strong> - Play / Stop / Record / Clear</div>
-            <div class="key-row"><strong>Mouse</strong> - Clicca celle e joystick</div>
-        </div>
-    </div>
+    <footer>OP-XY WEBSYNTH v2.0 — ENHANCED WITH RECORDING</footer>
 
     <script>
-        // ========== STATE ==========
+        // ═══════════════════════════════════════════════
+        //  AUDIO ENGINE
+        // ═══════════════════════════════════════════════
+        const AC = window.AudioContext || window.webkitAudioContext;
+        let ctx = null, masterGain = null, filterNode = null;
+        let reverbMix = null, delayMix = null, delayFb = null;
+
+        function getCtx() {
+            if (!ctx) {
+                ctx = new AC();
+                masterGain = ctx.createGain(); 
+                masterGain.gain.value = 0.7;
+                
+                filterNode = ctx.createBiquadFilter(); 
+                filterNode.type = 'lowpass'; 
+                filterNode.frequency.value = 20000;
+
+                // Reverb
+                const rLen = ctx.sampleRate * 2;
+                const rBuf = ctx.createBuffer(2, rLen, ctx.sampleRate);
+                for (let c = 0; c < 2; c++) { 
+                    const d = rBuf.getChannelData(c); 
+                    for (let i = 0; i < rLen; i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/rLen,3); 
+                }
+                const rv = ctx.createConvolver(); 
+                rv.buffer = rBuf;
+                reverbMix = ctx.createGain(); 
+                reverbMix.gain.value = 0;
+
+                // Delay
+                const dl = ctx.createDelay(1); 
+                dl.delayTime.value = 0.3;
+                delayFb = ctx.createGain(); 
+                delayFb.gain.value = 0;
+                delayMix = ctx.createGain(); 
+                delayMix.gain.value = 0;
+
+                masterGain.connect(filterNode);
+                filterNode.connect(ctx.destination);
+                filterNode.connect(rv); 
+                rv.connect(reverbMix); 
+                reverbMix.connect(ctx.destination);
+                filterNode.connect(dl); 
+                dl.connect(delayFb); 
+                delayFb.connect(dl);
+                dl.connect(delayMix); 
+                delayMix.connect(ctx.destination);
+            }
+            if (ctx.state === 'suspended') ctx.resume();
+            return ctx;
+        }
+
+        function out(node) { node.connect(masterGain); }
+
+        // ── Synth helpers ──
+        function makeDrum(freq, dur, noiseAmt, attack) {
+            const c = getCtx(), t = c.currentTime;
+            const o = c.createOscillator(), g = c.createGain();
+            o.frequency.setValueAtTime(freq, t);
+            o.frequency.exponentialRampToValueAtTime(20, t + dur);
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.8, t + attack);
+            g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            o.connect(g); 
+            out(g); 
+            o.start(t); 
+            o.stop(t + dur);
+            
+            if (noiseAmt > 0) {
+                const nb = c.createBuffer(1, c.sampleRate * 0.08, c.sampleRate);
+                const nd = nb.getChannelData(0);
+                for (let i = 0; i < nd.length; i++) nd[i] = (Math.random()*2-1)*noiseAmt;
+                const ns = c.createBufferSource(), ng = c.createGain(); 
+                ns.buffer = nb;
+                ng.gain.setValueAtTime(0.3, t); 
+                ng.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+                ns.connect(ng); 
+                out(ng); 
+                ns.start(t);
+            }
+        }
+
+        function makeHH(dur) {
+            const c = getCtx(), t = c.currentTime;
+            const nb = c.createBuffer(1, c.sampleRate * dur, c.sampleRate);
+            const nd = nb.getChannelData(0); 
+            for (let i = 0; i < nd.length; i++) nd[i] = Math.random()*2-1;
+            const s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+            f.type = 'highpass'; 
+            f.frequency.value = 8000;
+            g.gain.setValueAtTime(0.3, t); 
+            g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            s.buffer = nb; 
+            s.connect(f); 
+            f.connect(g); 
+            out(g); 
+            s.start(t);
+        }
+
+        function makeClap() {
+            const c = getCtx(), t = c.currentTime;
+            [0, 0.01, 0.02].forEach(dt => {
+                const nb = c.createBuffer(1, c.sampleRate*0.05, c.sampleRate);
+                const nd = nb.getChannelData(0); 
+                for (let i = 0; i < nd.length; i++) nd[i] = Math.random()*2-1;
+                const s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
+                f.type = 'bandpass'; 
+                f.frequency.value = 1200; 
+                f.Q.value = 0.5;
+                g.gain.setValueAtTime(0.4, t+dt); 
+                g.gain.exponentialRampToValueAtTime(0.001, t+dt+0.08);
+                s.buffer = nb; 
+                s.connect(f); 
+                f.connect(g); 
+                out(g); 
+                s.start(t+dt);
+            });
+        }
+
+        function makeSynth(freq, wave='sine', dur=0.3) {
+            const c = getCtx(), t = c.currentTime;
+            const o = c.createOscillator(), g = c.createGain();
+            o.type = wave; 
+            o.frequency.value = freq;
+            g.gain.setValueAtTime(0, t); 
+            g.gain.linearRampToValueAtTime(0.25, t+0.01);
+            g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+            o.connect(g); 
+            out(g);
+            o.start(t); 
+            o.stop(t+dur);
+        }
+
+        function makeBass(freq) {
+            const c = getCtx(), t = c.currentTime;
+            const o = c.createOscillator(), g = c.createGain();
+            o.type = 'sawtooth'; 
+            o.frequency.value = freq;
+            g.gain.setValueAtTime(0, t); 
+            g.gain.linearRampToValueAtTime(0.4, t+0.01);
+            g.gain.exponentialRampToValueAtTime(0.001, t+0.5);
+            o.connect(g); 
+            out(g); 
+            o.start(t); 
+            o.stop(t+0.5);
+        }
+
+        // ═══════════════════════════════════════════════
+        //  STATE
+        // ═══════════════════════════════════════════════
         const state = {
-            grid: Array(256).fill(false), // 16x16 = 256 celle
-            selectedRow: 0,
-            selectedCol: 0,
+            grid: Array(256).fill(false),
             joystickX: 0,
             joystickY: 0,
-            isPlaying: false,
-            isRecording: false,
             bpm: 120,
-            lastNote: '---'
+            playing: false,
+            recording: false,
+            currentStep: 0,
+            numSteps: 16,
+            volume: 0.8,
+            filterFreq: 20000,
+            fx: { reverb: false, delay: false },
         };
 
-        // ========== AUDIO CONTEXT ==========
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playTone(frequency, duration = 100) {
-            const now = audioContext.currentTime;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-
-            osc.frequency.value = frequency;
-            osc.type = 'square';
-
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
-
-            osc.start(now);
-            osc.stop(now + duration / 1000);
-        }
-
-        function playNoteByIndex(index) {
-            // Mappa indici a frequenze (scala pentatonica)
-            const notes = [
-                262, 294, 330, 349, 392, // C D E F G
-                440, 494, 523, 587, 659, // A B C D E
-                740, 784, 880, 988, 1047, // F# G# A B C#
-                1175
-            ];
-            const note = notes[index % notes.length];
-            const noteName = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F#', 'G#', 'A', 'B', 'C#', 'D#'][index % 16];
-            state.lastNote = noteName;
-            playTone(note, 150);
-            updateDisplay();
-        }
-
-        // ========== GRID FUNCTIONS ==========
+        // ═══════════════════════════════════════════════
+        //  GRID FUNCTIONS
+        // ════════════════════════════════════���══════════
         function initGrid() {
             const gridContainer = document.getElementById('grid');
+            if (!gridContainer) return;
+            
             gridContainer.innerHTML = '';
-
             for (let i = 0; i < 256; i++) {
                 const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                if (state.grid[i]) cell.classList.add('active');
-                cell.textContent = '';
+                cell.className = 'grid-cell' + (state.grid[i] ? ' active' : '');
                 cell.addEventListener('click', () => toggleCell(i));
                 cell.addEventListener('mouseenter', (e) => {
-                    if (e.buttons === 1) toggleCell(i); // Trascinamento
+                    if (e.buttons === 1) toggleCell(i);
                 });
                 gridContainer.appendChild(cell);
             }
@@ -416,7 +739,8 @@
 
         function toggleCell(index) {
             state.grid[index] = !state.grid[index];
-            playNoteByIndex(index);
+            const freq = 261.63 + (index % 16) * 20;
+            makeSynth(freq, 'square', 0.1);
             updateGridDisplay();
         }
 
@@ -429,12 +753,15 @@
                     cell.classList.remove('active');
                 }
             });
-            updateDisplay();
         }
 
-        // ========== JOYSTICK FUNCTIONS ==========
+        // ═══════════════════════════════════════════════
+        //  JOYSTICK FUNCTIONS
+        // ═══════════════════════════════════════════════
         function initJoystick() {
             const container = document.getElementById('joystickContainer');
+            if (!container) return;
+            
             container.addEventListener('mousemove', updateJoystick);
             container.addEventListener('mouseleave', resetJoystick);
             container.addEventListener('touchmove', (e) => {
@@ -445,6 +772,8 @@
 
         function updateJoystick(e) {
             const container = document.getElementById('joystickContainer');
+            if (!container) return;
+            
             const rect = container.getBoundingClientRect();
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
@@ -463,7 +792,7 @@
 
             const distX = x - centerX;
             const distY = y - centerY;
-            const maxDist = Math.min(centerX, centerY) - 15;
+            const maxDist = Math.min(centerX, centerY) - 12;
 
             const distance = Math.sqrt(distX * distX + distY * distY);
             let finalX = distX;
@@ -476,153 +805,329 @@
             }
 
             state.joystickX = Math.round((finalX / maxDist) * 127);
-            state.joystickY = Math.round((finalY / maxDist) * 127);
+            state.joystickY = Math.round((-finalY / maxDist) * 127);
 
             const knob = document.getElementById('joystickKnob');
-            knob.style.transform = `translate(calc(-50% + ${finalX}px), calc(-50% + ${finalY}px))`;
+            if (knob) {
+                knob.style.transform = `translate(calc(-50% + ${finalX}px), calc(-50% + ${finalY}px))`;
+            }
 
-            updateDisplay();
+            updateJoystickDisplay();
         }
 
         function resetJoystick() {
             state.joystickX = 0;
             state.joystickY = 0;
             const knob = document.getElementById('joystickKnob');
-            knob.style.transform = 'translate(-50%, -50%)';
-            updateDisplay();
+            if (knob) knob.style.transform = 'translate(-50%, -50%)';
+            updateJoystickDisplay();
         }
-
-        // ========== KEYBOARD CONTROLS ==========
-        document.addEventListener('keydown', (e) => {
-            // Numpad per selezione riga (0-9)
-            if (e.key >= '0' && e.key <= '9') {
-                const row = parseInt(e.key);
-                if (row < 16) {
-                    state.selectedRow = row;
-                    playTone(262 + row * 50);
-                }
-            }
-
-            // Arrow Keys e WASD per joystick
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-                state.joystickY = Math.max(-127, state.joystickY - 20);
-                updateJoystickDisplay();
-                e.preventDefault();
-            }
-            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-                state.joystickY = Math.min(127, state.joystickY + 20);
-                updateJoystickDisplay();
-                e.preventDefault();
-            }
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-                state.joystickX = Math.max(-127, state.joystickX - 20);
-                updateJoystickDisplay();
-                e.preventDefault();
-            }
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-                state.joystickX = Math.min(127, state.joystickX + 20);
-                updateJoystickDisplay();
-                e.preventDefault();
-            }
-
-            // SPACE per attivare/disattivare cella selezionata
-            if (e.key === ' ') {
-                const index = state.selectedRow * 16 + state.selectedCol;
-                toggleCell(index);
-                e.preventDefault();
-            }
-
-            // Comandi
-            if (e.key === 'p' || e.key === 'P') playClick();
-            if (e.key === 's' || e.key === 'S') stopClick();
-            if (e.key === 'r' || e.key === 'R') recordClick();
-            if (e.key === 'c' || e.key === 'C') clearClick();
-
-            // +/- per colonna
-            if (e.key === '+' || e.key === '=') {
-                state.selectedCol = Math.min(15, state.selectedCol + 1);
-            }
-            if (e.key === '-') {
-                state.selectedCol = Math.max(0, state.selectedCol - 1);
-            }
-        });
 
         function updateJoystickDisplay() {
-            const maxDist = 85; // Raggio del joystick
-            const x = (state.joystickX / 127) * maxDist;
-            const y = (state.joystickY / 127) * maxDist;
-            const knob = document.getElementById('joystickKnob');
-            knob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-            updateDisplay();
+            document.getElementById('xValue').textContent = state.joystickX;
+            document.getElementById('yValue').textContent = state.joystickY;
         }
 
-        // ========== BUTTON HANDLERS ==========
-        function playClick() {
-            state.isPlaying = !state.isPlaying;
-            document.getElementById('playBtn').style.background = state.isPlaying ? '#00d9ff' : '#1a1a1a';
-            document.getElementById('playBtn').style.color = state.isPlaying ? '#000' : '#00d9ff';
-            playTone(440, 100);
-            updateDisplay();
+        // ═══════════════════════════════════════════════
+        //  RENDER
+        // ═══════════════════════════════════════════════
+        function renderDevice() {
+            const gridHTML = Array(256).fill(0).map((_, i) =>
+                `<div class="grid-cell${state.grid[i] ? ' active' : ''}" onclick="toggleCell(${i})"></div>`
+            ).join('');
+
+            const volAngle = -135 + state.volume * 270;
+            const filterAngle = -135 + (state.filterFreq / 20000) * 270;
+
+            const knobs = [
+                { id:'vol',    label:'VOL',    angle:volAngle,    val: Math.round(state.volume*100) + '%' },
+                { id:'fil',    label:'FILTER', angle:filterAngle, val: Math.round(state.filterFreq/1000*10)/10 + 'k' },
+            ];
+
+            document.getElementById('device-container').innerHTML = `
+                <div class="device">
+                    <div class="screen">
+                        <div class="screen-top">
+                            <span class="screen-label">OP-XY GRID SEQUENCER</span>
+                            <span class="screen-bpm">${state.bpm} BPM</span>
+                        </div>
+                        <div class="screen-row">
+                            <span class="screen-info${state.playing?' on':''}" data-k="play">${state.playing?'PLAY':'STOP'}</span>
+                            <span class="screen-info${state.recording?' rec-on':''}" data-k="rec">${state.recording?'REC':'---'}</span>
+                            <span class="screen-info" data-k="step">ST ${String(state.currentStep+1).padStart(2,'0')}/${state.numSteps}</span>
+                            <span class="screen-info" data-k="fx">FX:${state.fx.reverb?'R':'-'}${state.fx.delay?'D':'-'}</span>
+                        </div>
+                    </div>
+
+                    <!-- GRID -->
+                    <div class="grid-container">
+                        <div class="grid-label">📊 SEQUENCER GRID 16×16</div>
+                        <div class="grid" id="grid">${gridHTML}</div>
+                    </div>
+
+                    <!-- JOYSTICK -->
+                    <div class="joystick-section">
+                        <div class="joystick-label">🎮 XY JOYSTICK CONTROLLER</div>
+                        <div class="joystick-container" id="joystickContainer">
+                            <div class="joystick-crosshair"></div>
+                            <div class="joystick-knob" id="joystickKnob"></div>
+                        </div>
+                        <div class="joystick-info">
+                            <div class="joystick-value"><span class="joystick-value-label">X:</span> <span id="xValue">0</span></div>
+                            <div class="joystick-value"><span class="joystick-value-label">Y:</span> <span id="yValue">0</span></div>
+                            <div class="joystick-value"><span class="joystick-value-label">CELLS:</span> <span id="cellCount">0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- CONTROLS -->
+                    <div class="controls-panel">
+                        <div class="knobs-row">
+                            ${knobs.map(k => `
+                                <div class="knob-group">
+                                    <div class="knob" data-knob="${k.id}" onmousedown="startKnob(event,'${k.id}')" ontouchstart="startKnobT(event,'${k.id}')">
+                                        <div class="knob-dot" style="transform:rotate(${k.angle}deg)"></div>
+                                    </div>
+                                    <div class="knob-val" id="kval-${k.id}">${k.val}</div>
+                                    <div class="knob-label">${k.label}</div>
+                                </div>`).join('')}
+                            <div class="fx-section">
+                                <div class="fx-label">FX</div>
+                                <div class="fx-chain">
+                                    <button class="fx-btn${state.fx.reverb?' active':''}" onclick="toggleFx('reverb')">REVERB</button>
+                                    <button class="fx-btn${state.fx.delay?' active':''}" onclick="toggleFx('delay')">DELAY</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="btn-row">
+                            <button class="btn${state.playing?' active':''}" onclick="togglePlay()">${state.playing?'■ STOP':'▶ PLAY'}</button>
+                            <button class="btn rec${state.recording?' active':''}" onclick="toggleRec()">● REC</button>
+                            <button class="btn" onclick="clearGrid()">✕ CLR</button>
+                        </div>
+
+                        <div class="tempo-row">
+                            <label>TEMPO</label>
+                            <input type="range" min="60" max="220" value="${state.bpm}" step="1" oninput="changeBpm(this.value)">
+                            <span class="tempo-val">${state.bpm} BPM</span>
+                        </div>
+                    </div>
+                </div>`;
+
+            initGrid();
+            initJoystick();
+            document.getElementById('cellCount').textContent = state.grid.filter(x => x).length;
         }
 
-        function stopClick() {
-            state.isPlaying = false;
-            state.isRecording = false;
-            document.getElementById('playBtn').style.background = '#1a1a1a';
-            document.getElementById('playBtn').style.color = '#00d9ff';
-            document.getElementById('recordBtn').style.background = '#1a1a1a';
-            document.getElementById('recordBtn').style.color = '#00d9ff';
-            playTone(220, 100);
-            updateDisplay();
+        // ═══════════════════════════════════════════════
+        //  ACTIONS
+        // ═══════════════════════════════════════════════
+        function togglePlay() {
+            state.playing = !state.playing;
+            if (state.playing) {
+                state.currentStep = 0;
+                playSequence();
+            }
+            renderDevice();
         }
 
-        function recordClick() {
-            state.isRecording = !state.isRecording;
-            document.getElementById('recordBtn').style.background = state.isRecording ? '#ff0000' : '#1a1a1a';
-            document.getElementById('recordBtn').style.color = state.isRecording ? '#fff' : '#00d9ff';
-            playTone(330, 100);
-            updateDisplay();
+        function toggleRec() {
+            state.recording = !state.recording;
+            renderDevice();
         }
 
-        function clearClick() {
-            if (confirm('Sei sicuro? Cancella tutte le celle!')) {
+        function clearGrid() {
+            if (confirm('Cancella tutte le celle?')) {
                 state.grid = Array(256).fill(false);
-                updateGridDisplay();
-                playTone(110, 150);
+                renderDevice();
             }
         }
 
-        // ========== EVENT LISTENERS ==========
-        document.getElementById('playBtn').addEventListener('click', playClick);
-        document.getElementById('stopBtn').addEventListener('click', stopClick);
-        document.getElementById('recordBtn').addEventListener('click', recordClick);
-        document.getElementById('clearBtn').addEventListener('click', clearClick);
-
-        // ========== DISPLAY UPDATE ==========
-        function updateDisplay() {
-            document.getElementById('xValue').textContent = state.joystickX;
-            document.getElementById('yValue').textContent = state.joystickY;
-            document.getElementById('activeCells').textContent = state.grid.filter(x => x).length;
-            document.getElementById('lastNote').textContent = state.lastNote;
-            
-            let status = 'Ready';
-            if (state.isPlaying) status = '▶ Playing';
-            if (state.isRecording) status = '● Recording';
-            document.getElementById('status').textContent = status;
+        function changeBpm(v) {
+            state.bpm = parseInt(v);
+            document.querySelector('.tempo-val').textContent = state.bpm + ' BPM';
+            renderDevice();
         }
 
-        // ========== INIT ==========
-        window.addEventListener('load', () => {
-            initGrid();
-            initJoystick();
-            updateDisplay();
-            playTone(262, 50);
-        });
+        function toggleFx(fx) {
+            state.fx[fx] = !state.fx[fx];
+            getCtx();
+            if (reverbMix) reverbMix.gain.value = state.fx.reverb ? 0.35 : 0;
+            if (delayMix) delayMix.gain.value = state.fx.delay ? 0.4 : 0;
+            if (delayFb) delayFb.gain.value = state.fx.delay ? 0.35 : 0;
+            renderDevice();
+        }
 
-        // Previeni zoom su doppio tap
-        document.addEventListener('touchmove', (e) => {
-            if (e.scale !== 1) e.preventDefault();
-        }, { passive: false });
+        function playSequence() {
+            const stepMs = (60 / state.bpm / 4) * 1000;
+            const playStep = () => {
+                const row = Math.floor(state.currentStep / 16);
+                state.grid.forEach((cell, i) => {
+                    if (cell && (i % 16) === state.currentStep % 16) {
+                        const freq = 261.63 + (i % 16) * 20;
+                        makeSynth(freq, 'square', 0.1);
+                    }
+                });
+                state.currentStep = (state.currentStep + 1) % state.numSteps;
+                if (state.playing) setTimeout(playStep, stepMs);
+            };
+            playStep();
+        }
+
+        // ═══════════════════════════════════════════════
+        //  KNOBS
+        // ══════════════��════════════════════════════════
+        let knobDrag = null;
+
+        function startKnob(e, id) {
+            knobDrag = { id, startY: e.clientY, startVal: getKV(id) };
+            const move = e => { 
+                if (!knobDrag) return; 
+                applyKD(knobDrag.id, knobDrag.startY - e.clientY, knobDrag.startVal); 
+            };
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', () => { 
+                knobDrag = null; 
+                document.removeEventListener('mousemove', move); 
+            }, { once: true });
+        }
+
+        function startKnobT(e, id) {
+            e.preventDefault();
+            const t0 = e.touches[0];
+            knobDrag = { id, startY: t0.clientY, startVal: getKV(id) };
+            const move = e => { 
+                if (!knobDrag) return; 
+                applyKD(knobDrag.id, knobDrag.startY - e.touches[0].clientY, knobDrag.startVal); 
+            };
+            document.addEventListener('touchmove', move, { passive: false });
+            document.addEventListener('touchend', () => { 
+                knobDrag = null; 
+                document.removeEventListener('touchmove', move); 
+            }, { once: true });
+        }
+
+        function getKV(id) {
+            if (id === 'vol') return state.volume;
+            if (id === 'fil') return state.filterFreq / 20000;
+            return 0.5;
+        }
+
+        function applyKD(id, dy, startVal) {
+            const v = Math.max(0, Math.min(1, startVal + dy / 160));
+            if (id === 'vol') { 
+                state.volume = v; 
+                if (masterGain) masterGain.gain.value = v; 
+                const el = document.getElementById('kval-vol'); 
+                if (el) el.textContent = Math.round(v*100) + '%'; 
+            }
+            if (id === 'fil') { 
+                state.filterFreq = 200 + v * 19800; 
+                if (filterNode) filterNode.frequency.value = state.filterFreq; 
+                const el = document.getElementById('kval-fil'); 
+                if (el) el.textContent = Math.round(state.filterFreq/100)/10 + 'k'; 
+            }
+            const dot = document.querySelector(`[data-knob="${id}"] .knob-dot`);
+            if (dot) dot.style.transform = `rotate(${-135 + v*270}deg)`;
+        }
+
+        // ═══════════════════════════════════════════════
+        //  AUDIO RECORDING
+        // ═══════════════════════════════════════════════
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recStartTime = null;
+        let recTimerInterval = null;
+        let memos = [];
+
+        async function toggleAudioRec() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                return;
+            }
+            try {
+                const dest = getCtx().createMediaStreamDestination();
+                masterGain.connect(dest);
+                const stream = dest.stream;
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                recStartTime = Date.now();
+
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    clearInterval(recTimerInterval);
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const duration = ((Date.now() - recStartTime) / 1000).toFixed(1);
+                    const name = 'memo-' + new Date().toISOString().slice(11,19).replace(/:/g,'-');
+                    memos.push({ name, blob, duration, size: (blob.size / 1024).toFixed(0) });
+                    document.getElementById('btn-audio-rec').classList.remove('active');
+                    document.getElementById('rec-dot').classList.remove('active');
+                    document.getElementById('rec-timer').style.display = 'none';
+                    masterGain.disconnect(dest);
+                    renderMemos();
+                };
+
+                mediaRecorder.start();
+                document.getElementById('btn-audio-rec').classList.add('active');
+                document.getElementById('btn-audio-rec').textContent = '■ STOP REC';
+                document.getElementById('rec-dot').classList.add('active');
+                const timerEl = document.getElementById('rec-timer');
+                timerEl.style.display = 'inline';
+                recTimerInterval = setInterval(() => {
+                    const s = ((Date.now() - recStartTime) / 1000).toFixed(0);
+                    timerEl.textContent = '● ' + String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+                }, 500);
+            } catch (err) {
+                alert('Impossibile accedere all\'audio: ' + err.message);
+            }
+        }
+
+        function renderMemos() {
+            const list = document.getElementById('memo-list');
+            if (!memos.length) { 
+                list.innerHTML = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text2);padding:.5rem 0">Nessuna registrazione ancora.</div>'; 
+                return; 
+            }
+            list.innerHTML = memos.map((m, i) => `
+                <div class="memo-item">
+                    <div class="memo-name">${m.name}.webm</div>
+                    <div class="memo-size">${m.duration}s · ${m.size}KB</div>
+                    <button class="btn-sm" onclick="playMemo(${i})">▶</button>
+                    <button class="btn-sm" onclick="downloadMemo(${i})">↓</button>
+                    <button class="btn-sm danger" onclick="deleteMemo(${i})">✕</button>
+                </div>`).join('');
+        }
+
+        function playMemo(i) {
+            const url = URL.createObjectURL(memos[i].blob);
+            const a = new Audio(url); 
+            a.play();
+        }
+
+        function downloadMemo(i) {
+            const url = URL.createObjectURL(memos[i].blob);
+            const a = document.createElement('a'); 
+            a.href = url; 
+            a.download = memos[i].name + '.webm'; 
+            a.click();
+        }
+
+        function deleteMemo(i) { 
+            memos.splice(i, 1); 
+            renderMemos(); 
+        }
+
+        function exportAllMemos() {
+            memos.forEach((m, i) => setTimeout(() => downloadMemo(i), i * 500));
+        }
+
+        // ═══════════════════════════════════════════════
+        //  INIT
+        // ═══════════════════════════════════════════════
+        window.addEventListener('load', () => {
+            renderDevice();
+            renderMemos();
+            document.getElementById('btn-audio-rec').textContent = '◉ REC AUDIO';
+        });
     </script>
 </body>
 </html>
